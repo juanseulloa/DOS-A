@@ -1,0 +1,175 @@
+CREATE TABLE empresa (
+	idempresa SERIAL PRIMARY KEY,
+	nombrempresa VARCHAR(100) NOT NULL,
+	nit VARCHAR(100) NOT NULL,
+	telefono INT4 NOT NULL,
+	pais VARCHAR(100) NOT NULL,
+	departamento VARCHAR(100) NOT NULL,
+	municipio VARCHAR(100) NOT NULL,
+	direccion VARCHAR(100) NOT NULL,
+	correo VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE salariominimo(
+	idsalariominimo SERIAL PRIMARY KEY,
+	idempresa INT4 NOT NULL,
+	año INT4 NOT NULL,
+	salario NUMERIC NOT NULL,
+	
+	CONSTRAINT FK_EMPRESA_SALARIOMINIMO FOREIGN KEY(idempresa) REFERENCES empresa(idempresa)
+);
+
+CREATE TABLE persona(
+	idpersona SERIAL PRIMARY KEY,
+	idempresa INT NOT NULL,
+	primernombre VARCHAR(100) NOT NULL,
+	segundonombre VARCHAR(100) NOT NULL,
+	primerapellido VARCHAR(100) NOT NULL,
+	segundoapellido VARCHAR(100) NOT NULL,
+	tipodocumento VARCHAR(100) NOT NULL,
+	numerodocumento INT NOT NULL,
+	
+	CONSTRAINT FK_EMPRESA_PERSONA FOREIGN KEY(idempresa) REFERENCES empresa(idempresa)
+);
+
+CREATE TABLE tipopersona(
+	idtipopersona SERIAL PRIMARY KEY, 				
+	nombretipopersona VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE persona_tipopersona(
+	idpersonatipopersona SERIAL PRIMARY KEY,
+	idpersona INT NOT NULL,
+	idtipopersona INT NOT NULL,
+	
+	CONSTRAINT FK_PERSONA_PERSONA_TIPOPERSONA FOREIGN KEY (idpersona) REFERENCES persona (idpersona),
+	CONSTRAINT FK_TIPOPERSONA_PERSONA_TIPOPERSONA FOREIGN KEY (idtipopersona) REFERENCES tipopersona(idtipopersona)
+);
+
+
+CREATE TABLE tipocuenta (
+	idtipocuenta SERIAL PRIMARY KEY,
+	nombretipocuenta VARCHAR(100) NOT NULL			
+);
+
+CREATE TABLE puc (
+	idpuc SERIAL PRIMARY KEY,
+	codpuc INT4 NOT NULL,					
+	nombrepuc VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE cuenta (
+	idcuenta SERIAL PRIMARY KEY,
+	idsubcuenta INT NOT NULL,
+	idempresa INT NOT NULL,
+	idtipocuenta INT NOT NULL,
+	idpuc INT NOT NULL,
+	detalle VARCHAR(100) NOT NULL,
+	
+	CONSTRAINT FK_EMPRESA_CUENTA FOREIGN KEY(idempresa)REFERENCES empresa(idempresa),
+	CONSTRAINT FK_TIPOCUENTA_CUENTA FOREIGN KEY(idtipocuenta) REFERENCES tipocuenta(idtipocuenta),
+	CONSTRAINT FK_PUC_CUENTA FOREIGN KEY(idpuc) REFERENCES puc (idpuc)
+);
+
+CREATE TABLE cuenta_persona(
+	idcuentapersona SERIAL PRIMARY KEY,
+	idpersonatipopersona INT NOT NULL,
+	idcuenta INT NOT NULL,
+	valorcuenta NUMERIC NOT NULL,
+	
+	CONSTRAINT FK_PERSONATIPOPERSONA_CUENTA_PERSONA FOREIGN KEY(idpersonatipopersona) REFERENCES persona_tipopersona(idpersonatipopersona),
+	CONSTRAINT FK_CUENTA_CUENTA_PERSONA FOREIGN KEY(idcuenta) REFERENCES cuenta(idcuenta)
+);
+
+CREATE TABLE cargo (
+	idcargo SERIAL PRIMARY KEY,
+	nombrecargo VARCHAR(100) NOT NULL,
+	ibc INT4 NOT NULL,
+	horaordinaria NUMERIC NOT NULL,
+	salariobasico NUMERIC NOT NULL,
+	auxtransporte NUMERIC NOT NULL,
+	horasextras NUMERIC NOT NULL
+);
+
+CREATE TABLE cargo_persona (
+	idcargopersona SERIAL PRIMARY KEY,
+	idpersona INT NOT NULL,
+	idcargo INT NOT NULL,
+	fecha DATE NOT NULL,
+	
+	CONSTRAINT FK_PERSONA_CARGOPERSONA FOREIGN KEY(idpersona) REFERENCES persona (idpersona),
+	CONSTRAINT FK_CARGO_CARGOPERSONA FOREIGN KEY(idcargo) REFERENCES cargo (idcargo)
+);
+
+CREATE TABLE detallemes(
+	iddetallemes SERIAL PRIMARY KEY,
+	idcargopersona INT NOT NULL,
+	diastrabajados INT4 NOT NULL,
+	horasextras INT4 NOT NULL,
+	cantidadsalario NUMERIC NOT NULL,
+	auxiliocantidad NUMERIC NOT NULL,
+	
+	CONSTRAINT FK_CARGOPERSONA_DETALLEMES FOREIGN KEY(idcargopersona) REFERENCES cargo_persona(idcargopersona)
+	
+);
+
+CREATE TABLE factura(
+	idfactura SERIAL PRIMARY KEY,
+	idpersona INT NOT NULL,
+	fecha DATE NOT NULL,
+	fechavencimiento DATE NOT NULL, 
+	cliente VARCHAR(100) NOT NULL,
+	tipodocumento VARCHAR(100) NOT NULL,
+	numerodocumento INT NOT NULL,
+	direccion VARCHAR(100) NOT NULL,
+	telefono INT NOT NULL,
+	ciudad VARCHAR(100) NOT NULL,
+	formapago VARCHAR(100) NOT NULL,
+	ordencompra VARCHAR(100) NOT NULL,
+	cantidad INT NOT NULL,
+	detalle VARCHAR(100) NOT NULL,
+	valorunitario NUMERIC NOT NULL,
+	valortotal NUMERIC NOT NULL,
+	
+	CONSTRAINT FK_PERSONA_FACTURA FOREIGN KEY(idpersona) REFERENCES persona(idpersona)
+);
+
+CREATE TABLE tipousuario(
+	idtipousuario SERIAL PRIMARY KEY,
+	nombretipousuario VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE usuario(
+	idusuario SERIAL PRIMARY KEY,
+	idpersona INT NOT NULL,
+	idtipousuario INT NOT NULL,
+	usuario VARCHAR(100) NOT NULL,
+	clave  VARCHAR(100) NOT NULL,
+	
+	CONSTRAINT FK_TIPOUSUARIO_USUARIO FOREIGN KEY(idtipousuario) REFERENCES tipousuario(idtipousuario),
+	CONSTRAINT FK_PERSONA_USUARIO FOREIGN KEY(idpersona) REFERENCES persona (idpersona)
+);
+
+CREATE TABLE notificacion (
+	idnotificacion SERIAL PRIMARY KEY,
+	idusuario INT NOT NULL,
+	detalle VARCHAR(100) NOT NULL,
+	
+	CONSTRAINT FK_USUARIO_NOTIFICACION FOREIGN KEY(idusuario) REFERENCES usuario (idusuario)
+);
+
+CREATE TABLE detallemovimiento (
+	iddetallemovimiento SERIAL PRIMARY KEY,
+	idcuenta INT NOT NULL,
+	idpersonatipopersona INT NOT NULL,
+	idcargopersona INT NOT NULL,
+	idfactura INT NOT NULL,
+	tipodocumento VARCHAR(100) NOT NULL,
+	fechainicio DATE NOT NULL,
+	fechafin DATE NOT NULL,
+	
+	CONSTRAINT FK_CUENTA_DETALLEMOVIMIENTO FOREIGN KEY(idcuenta) REFERENCES cuenta (idcuenta),
+	CONSTRAINT FK_PERSONATIPO_DETALLEMOVIMIENTO FOREIGN KEY(idpersonatipopersona) REFERENCES  persona_tipopersona(idpersonatipopersona),
+	CONSTRAINT FK_CARGOPERSONA_DETALLEMOVIMIENTO FOREIGN KEY(idcargopersona) REFERENCES cargo_persona(idcargopersona),
+	CONSTRAINT FK_FACTURA_DETALLEMOVIMIENTO FOREIGN KEY(idfactura) REFERENCES factura(idfactura)
+);
